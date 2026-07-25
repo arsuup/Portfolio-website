@@ -71,7 +71,7 @@
       <DevCard
       preview="/i/DEV/portfolio-pre.jpg"
       title="Ce portfolio"
-      link="https://models.spriters-resource.com/wii/supermariogalaxy/asset/350012/"
+      link="https://github.com/arsuup/Portfolio-website"
       />
     </div>
 </template>
