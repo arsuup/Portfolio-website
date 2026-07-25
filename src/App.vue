@@ -2,7 +2,7 @@
   <div class="layout">
 
     <aside class="sidebar">
-      <img class="avatar" src="/i/pfp.png" alt="profile" />
+      <img class="avatar" src="/i/pfp.jpg" alt="profile" />
 
       <h2 style="font-stretch: 120%;">Arsuup</h2>
 

@@ -53,12 +53,12 @@
       <PhotoCard
       title="Header"
       size="x2"
-      link="/i/3D/KS-Header.png"
+      link="/i/3D/KS-Header.jpg"
       />
       <PhotoCard
       title="PFP"
       size="x1"
-      link="/i/3D/KS-PP8bit.png"
+      link="/i/3D/KS-PP8bit.jpg"
       />
       <PhotoCard
       title="Old PFP"
@@ -69,7 +69,7 @@
   <SectionDivider title="DEV" />
     <div class="grid">
       <DevCard
-      preview="/i/DEV/portfolio-pre.png"
+      preview="/i/DEV/portfolio-pre.jpg"
       title="Ce portfolio"
       link="https://models.spriters-resource.com/wii/supermariogalaxy/asset/350012/"
       />
