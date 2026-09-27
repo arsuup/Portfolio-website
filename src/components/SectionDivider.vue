@@ -1,14 +1,14 @@
-<template>
-  <div class="divider">
-    <span>{{ title }}</span>
-  </div>
-</template>
-
 <script setup>
 defineProps({
   title: String
 })
 </script>
+
+<template>
+  <div class="divider">
+    <span>{{ title }}</span>
+  </div>
+</template>
 
 <style scoped>
 .divider {
@@ -16,7 +16,8 @@ defineProps({
   align-items: center;
   gap: 12px;
   margin: 20px 0;
-  color: #aaa;
+  color: var(--w);
+  opacity: 66%;
 }
 
 .divider::before,
@@ -24,7 +25,7 @@ defineProps({
   content: "";
   flex: 1;
   height: 1px;
-  background: #222;
+  background: var(--border2);
 }
 
 .divider span {

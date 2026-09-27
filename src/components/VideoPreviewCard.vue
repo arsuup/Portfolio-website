@@ -1,16 +1,7 @@
-<template>
-  <div class="card" :class="size">
-    <div class="media">
-      <p>{{title}}</p>
-      <video ref="video" loop></video>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { onMounted, ref } from "vue"
 import Hls from "hls.js"
-import { loadHlsPrioritized } from "../utils/lazyqueue"
+import { loadHlsPrioritized } from "@/utils/lazyqueue"
 
 const props = defineProps({
   size: String,
@@ -19,6 +10,7 @@ const props = defineProps({
 })
 
 const video = ref(null)
+const hls = ref(null)
 
 const siteReady = () => {
   return new Promise((resolve) => {
@@ -32,7 +24,9 @@ const siteReady = () => {
 
 siteReady().then(() => {
   setTimeout(() => {
-    hls.currentLevel = -1 // 👈 auto ABR activé
+    if (hls.value) {
+      hls.value.currentLevel = -1
+    }
   }, 2000)
 })
 
@@ -43,7 +37,7 @@ onMounted(() => {
   if (Hls.isSupported()) {
     loadHlsPrioritized(() => {
       return new Promise((resolve) => {
-        const hls = new Hls({
+        const instance = new Hls({
           startLevel: 0,
           capLevelToPlayerSize: true,
           autoStartLoad: true,
@@ -54,10 +48,12 @@ onMounted(() => {
           enableWorker: true
         })
 
-        hls.loadSource(props.stream)
-        hls.attachMedia(el)
+        hls.value = instance
 
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        instance.loadSource(props.stream)
+        instance.attachMedia(el)
+
+        instance.on(Hls.Events.MANIFEST_PARSED, () => {
           el.muted = true
           el.playsInline = true
 
@@ -75,41 +71,57 @@ onMounted(() => {
 })
 </script>
 
+<template>
+  <div class="card" :class="size">
+    <div class="media">
+      <p>{{title}}</p>
+      <video ref="video" loop></video>
+    </div>
+  </div>
+</template>
+
 <style scoped>
 .card {
-  background: #111;
+  background: var(--surface);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   grid-column: span 1;
-  border: solid 1px #333;
+  border: solid 1px var(--border2);
   padding: 3px;
-  border-radius: 20px;
+  border-radius: 21px;
   grid-row: span 1;
+  position: relative;
 }
 
 .media {
   width: 100%;
   aspect-ratio: 16 / 9;
   background: black;
-  border-radius: 17px;
+  border-radius: 18px;
+  overflow: hidden;
+  position: relative;
 }
 
-.v9-16 .media {
-  aspect-ratio: 9 / 16;
+.v9-16 video {
+  object-fit: contain;
 }
 
 video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 17px;
-  aspect-ratio: 16/9;
+  display: block;
 }
 
-p{
+p {
   position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   margin: 10px;
-  text-shadow: 2px 2px 6px #000000;
+  text-shadow: 2px 2px 6px black;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 </style>
