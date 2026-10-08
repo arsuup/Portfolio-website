@@ -16,9 +16,11 @@ function runQueue() {
   const job = queue.shift()
   active++
 
-  job.loadFn().then((res) => {
-    job.resolve(res)
-    active--
-    runQueue()
-  })
+  Promise.resolve()
+    .then(job.loadFn)
+    .then(job.resolve, () => job.resolve())
+    .finally(() => {
+      active--
+      runQueue()
+    })
 }

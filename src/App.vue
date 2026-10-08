@@ -1,25 +1,67 @@
 <script setup>
-import { CDN_URL } from '@/utils/constants'
-import { ref, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { GITHUB_URL } from '@/utils/constants'
+import { CDN_URL } from './utils/constants'
 
-const isFrameVisible = ref(false);
-let hideTimeout = null;
+const route = useRoute()
+
+const isFrameVisible = ref(false)
+const politicsWrapper = ref(null)
+const politicsButton = ref(null)
+let hideTimeout = null
+const canHover = typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+
+let pinned = false
 
 const showFrame = () => {
-  clearTimeout(hideTimeout);
-  isFrameVisible.value = true;
-};
-
+  if (!canHover) return
+  clearTimeout(hideTimeout)
+  isFrameVisible.value = true
+}
 const scheduleHide = () => {
-  clearTimeout(hideTimeout);
-  hideTimeout = setTimeout(() => {
-    isFrameVisible.value = false;
-  }, 300);
-};
+  if (!canHover || pinned) return
+  clearTimeout(hideTimeout)
+  hideTimeout = setTimeout(() => { isFrameVisible.value = false }, 300)
+}
+const toggleFrame = () => {
+  clearTimeout(hideTimeout)
+  if (isFrameVisible.value && !pinned && canHover) {
+    pinned = true
+    return
+  }
+  isFrameVisible.value = !isFrameVisible.value
+  pinned = isFrameVisible.value
+}
+const onKeydown = (e) => {
+  if (e.key === 'Escape' && isFrameVisible.value) {
+    isFrameVisible.value = false
+    politicsButton.value?.focus()
+  }
+}
+const onPointerDown = (e) => {
+  if (isFrameVisible.value && politicsWrapper.value && !politicsWrapper.value.contains(e.target)) {
+    isFrameVisible.value = false
+  }
+}
+const onFocusOut = (e) => {
+  if (politicsWrapper.value && !politicsWrapper.value.contains(e.relatedTarget)) {
+    isFrameVisible.value = false
+  }
+}
 
+watch(isFrameVisible, (v) => { if (!v) pinned = false })
+watch(() => route.fullPath, () => { isFrameVisible.value = false })
+
+onMounted(() => {
+  document.addEventListener('keydown', onKeydown)
+  document.addEventListener('pointerdown', onPointerDown)
+})
 onUnmounted(() => {
-  clearTimeout(hideTimeout);
-});
+  clearTimeout(hideTimeout)
+  document.removeEventListener('keydown', onKeydown)
+  document.removeEventListener('pointerdown', onPointerDown)
+})
 
 const buildDate = new Date(__BUILD_DATE__).toLocaleString('fr-FR', {
   day: '2-digit',
@@ -28,111 +70,69 @@ const buildDate = new Date(__BUILD_DATE__).toLocaleString('fr-FR', {
   hour: '2-digit',
   minute: '2-digit',
 })
+const year = new Date().getFullYear()
 </script>
 
 <template>
+  <a class="skip-link" href="#contenu">Aller au contenu</a>
+
   <header>
     <div class="content-area">
       <div class="header-left">
-        <router-link to="/" class="brand">
-          <img class="brand-logo" :src="`${CDN_URL}/i/pfp.jpg`" alt=" ">
+        <router-link to="/" class="brand" aria-label="Arsuup — accueil">
+          <img class="brand-logo" :src="CDN_URL + '/i/pfp.jpg'" alt="" width="39" height="39">
         </router-link>
-        <nav>
-          <router-link to="/">Montage Vidéo</router-link>
+        <nav aria-label="Navigation principale">
+          <router-link to="/" exact-active-class="is-active">Montage Vidéo</router-link>
+          <!-- <router-link :to="{ path: '/', hash: '#contact' }" active-class="" exact-active-class="">Contact</router-link> -->
         </nav>
       </div>
-      <div class="header-right">
-      </div>
+      <div class="header-right"></div>
     </div>
   </header>
 
-  <main>
+  <main id="contenu" tabindex="-1">
     <router-view />
   </main>
 
   <footer>
     <div class="content-area">
       <div class="footer-left">
-        <p>© 2026 arsuup.fr</p>
-        <a class="github" href="https://github.com/arsuup/Portfolio-website" target="_blank" rel="noopener noreferrer" :title="'Dernier build le ' + buildDate">Github</a>
+        <p>© {{ year }} arsuup.fr</p>
+        <a class="github" :href="GITHUB_URL" target="_blank" rel="noopener noreferrer" :title="'Dernier build le ' + buildDate">Github</a>
       </div>
       <div class="footer-right">
-        <div class="politics-wrapper" @mouseenter="showFrame" @mouseleave="scheduleHide">
-          <button id="politics" class="footer-politics">
+        <div ref="politicsWrapper" class="politics-wrapper" @mouseenter="showFrame" @mouseleave="scheduleHide" @focusout="onFocusOut">
+          <button id="politics" ref="politicsButton" class="footer-politics" type="button" aria-controls="politics-frame" :aria-expanded="isFrameVisible" @click="toggleFrame">
             Conditions générales et politiques
+            <svg class="chevron" :class="{ open: isFrameVisible }" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 7.5 6 4.5l3 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <div id="politics-frame" class="footer-politics-frame" :class="{ visible: isFrameVisible }">
-            <router-link class="footer-politics-frame-button" to="/policies/legal">Mentions légales</router-link>
-            <router-link class="footer-politics-frame-button" to="/policies/rgpd">Politique de confidentialité</router-link>
-            <router-link class="footer-politics-frame-button disabled" to="/">Préférences en matière de cookies</router-link>
+            <router-link class="footer-politics-frame-button" to="/policies/legal" @mouseenter="import('@/views/legal/LegalView.vue')">Mentions légales</router-link>
+            <router-link class="footer-politics-frame-button" to="/policies/rgpd" @mouseenter="import('@/views/legal/LegalRgpdView.vue')">Politique de confidentialité</router-link>
           </div>
         </div>
       </div>
-    </div> 
+    </div>
   </footer>
 </template>
-
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&display=swap');
-  :root{
-    --primary: #e5db20;
-    --surface: #111;
-    --border: #ffffff10;
-    --border2: #333;
-    --b: #141517;
-    --w: #F0F1F8;
-    --textSecondary: #a1a1aa;
-    --usercontent: 1300px;
-  }
-  *{
-    font-family: "Archivo", sans-serif;
-  }
-  ::selection {
-    background: var(--w);
-    color: var(--b);
-    text-shadow: none;
-  }
-  ::-moz-selection {
-    background: var(--w);
-    color: var(--b);
-    text-shadow: none;
-  }
-  
-  html, body {
-    height: 100%;
-    background: var(--b);
-    color: var(--w);
-    margin: 0;
-  }
-
-  #app {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-
-  .content-area{
-    max-width: var(--usercontent);
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: space-between;
-  }
-</style>
 
 <style scoped>
   main{
     flex: 1;
     display: flex;
-    margin-top: 65px;
+    margin-top: var(--header-h);
     flex-direction: column;
     align-items: center;
+    outline: none;
   }
 
   header{
-    height: 65px;
+    height: var(--header-h);
     width: 100%;
-    background: var(--b);
+    background: color-mix(in srgb, var(--b) 82%, transparent);
+    -webkit-backdrop-filter: saturate(140%) blur(12px);
+    backdrop-filter: saturate(140%) blur(12px);
     color: var(--text);
     display: flex;
     justify-content: center;
@@ -142,23 +142,26 @@ const buildDate = new Date(__BUILD_DATE__).toLocaleString('fr-FR', {
     left: 0;
     z-index: 100;
   }
-  .header-left, .header-right{
+  .header-left,
+  .header-right{
     display: flex;
     align-items: center;
   }
 
   .brand{
-    height: 60%;
     display: flex;
     align-items: center;
     margin-right: 2rem;
+    border-radius: 10px;
   }
   .brand-logo{
-    height: 100%;
+    height: 39px;
+    width: 39px;
     user-select: none;
     border-radius: 10px;
     background: black;
-    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    transition: transform .4s var(--ease-out);
   }
 
   nav{
@@ -179,18 +182,22 @@ const buildDate = new Date(__BUILD_DATE__).toLocaleString('fr-FR', {
     color: var(--text);
     background: var(--surface);
   }
-  nav .router-link-active{
+  nav .is-active{
+    color: var(--text);
     border: solid 1px var(--border);
   }
 
-
   footer{
-    background: var(--background);
     border-top: solid 1px var(--border);
     color: var(--text);
     display: flex;
     justify-content: center;
     padding: 1.8rem 0;
+  }
+  footer .content-area{
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
   }
 
   .footer-left{
@@ -199,20 +206,21 @@ const buildDate = new Date(__BUILD_DATE__).toLocaleString('fr-FR', {
     align-items: center;
   }
 
-  p{
+  p{ 
     margin: 0;
   }
 
-  .github {
+  .github{
     color: var(--w);
     opacity: 0.7;
     text-decoration: none;
     padding: 10px 14px;
-    background: #0c0d0e;
+    background: var(--chip);
+    border-radius: 8px;
     width: max-content;
-    transition: 0.1s;
+    transition: opacity .1s;
   }
-  .github:hover {
+  .github:hover{
     opacity: 1;
   }
 
@@ -223,60 +231,89 @@ const buildDate = new Date(__BUILD_DATE__).toLocaleString('fr-FR', {
   }
 
   .footer-politics{
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
     border: 0;
     background: 0;
-    color: var(--text);
-    opacity: 60%;
+    color: var(--textSecondary);
     font-size: 1rem;
     cursor: pointer;
+    padding: 8px 6px;
+    transition: color .1s;
+  }
+  .footer-politics:hover,
+  .footer-politics[aria-expanded="true"]{
+    color: var(--text);
+  }
+  .chevron{
+    transition: transform .2s var(--ease-out); transform: rotate(180deg);
+  }
+  .chevron.open{
+    transform: rotate(0deg);
   }
 
   .footer-politics-frame{
-      background: var(--b);
-      /* border: solid 1px var(--border); */
-      box-shadow: 0 0 10px 0 #00000050;
-      position: absolute;
-      bottom: 100%;
-      margin-bottom: 2rem;
-      padding: 8px;
-      border-radius: 13px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(4px);
-      transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
-      pointer-events: none;
+    background: var(--b);
+    border: solid 1px var(--border);
+    box-shadow: 0 10px 30px -6px #00000080;
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: .75rem;
+    padding: 8px;
+    border-radius: 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: max-content;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    pointer-events: none;
   }
   .footer-politics-frame.visible{
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-      pointer-events: auto;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
   }
   .footer-politics-frame-button{
-      border: 0;
-      background: 0;
-      text-align: left;
-      font-size: 1rem;
-      color: var(--text);
-      padding: 8px 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.15s ease, color 0.15s ease;
-      user-select: none;
-      text-decoration: none;
+    text-align: left;
+    font-size: 1rem;
+    color: var(--text);
+    padding: 8px 10px;
+    border-radius: 8px;
+    transition: background 0.15s ease, color 0.15s ease;
+    user-select: none;
+    text-decoration: none;
   }
-  .footer-politics-frame-button.disabled{
-      background-image: repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0),rgba(0, 0, 0, 0) 5px, rgba(0, 0, 0, 1) 5px, rgba(0, 0, 0, 1) 6px);
-      background-size: 8px 8px, 8px 8px;
-      color: #000;
-      margin-top: 2px;
-      margin-bottom: 2px;
+  .footer-politics-frame-button:hover,
+  .footer-politics-frame-button.router-link-active{
+    background-color: var(--w);
+    color: var(--b);
   }
-  .footer-politics-frame-button:hover{
-      background-color: var(--w);
-      color: var(--b);
+
+  @media (max-width: 600px){
+    nav a{
+      padding: .45rem .6rem;
+    }
+    .brand{
+      margin-right: 1rem;
+    }
+    .footer-left{
+      gap: 1rem;
+    }
+    .footer-right{
+      width: 100%;
+    }
+    .footer-politics{
+      padding-left: 0;
+    }
+    .footer-politics-frame{
+      left: 0;
+      right: auto;
+    }
   }
 </style>

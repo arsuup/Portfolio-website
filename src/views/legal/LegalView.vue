@@ -1,12 +1,12 @@
 <template>
-  <MarkdownViewer 
-    title="Mentions légales" 
-    :content="mdDoc" 
-    :date="lastModifiedDate" 
+  <MarkdownViewer
+    title="Mentions légales"
+    :content="mdDoc"
+    :date="updated"
   />
 </template>
 
 <script setup>
   import MarkdownViewer from '@/components/MarkdownRenderer.vue'
-  import mdDoc, { lastModifiedDate } from './docs/legal.md'
+  import mdDoc, { updated } from './docs/legal.md'
 </script>

@@ -1,13 +1,22 @@
-# 1. Contact
-Vous pouvez me contacter en rapport avec ce site à [contact@arsuup.fr](https://mail.arsuup.fr/to/contact).
-Pour des demandes de collaboration ou même des questions bêtes : [prod@arsuup.fr](https://mail.arsuup.fr/to/prod). 
+---
+updated: 27 septembre 2026
+---
 
-# 2. Hébergeur
-* **Nom de l'hébergeur :** Cloudflare, Inc.
-* **Raison sociale de l'hébergeur :** SAS
-* **Siège social de l'hébergeur :** 101 Townsend St, San Francisco, CA 94107, USA
-* **Numéro de téléphone de l'hébergeur (numéro US) :** +1 (888) 993-5273
+## 1. Éditeur
+Le site arsuup.fr est un portfolio personnel, édité à titre non professionnel par Arsuup.
 
-# 3. Cookies et données personnelles
-Le seul cookie (obligatoire) déposé est celui de cloudflare permettant de luter contre le "scraping" ou autre.
-Aucune données ne sont collectées
+## 2. Contact
+Pour toute question en rapport avec ce site : [contact@arsuup.fr](https://mail.arsuup.fr/to/contact).
+Pour des demandes de collaboration, ou même des questions bêtes : [prod@arsuup.fr](https://mail.arsuup.fr/to/prod).
+
+## 3. Hébergeur
+* **Raison sociale :** Cloudflare, Inc.
+* **Siège social :** 101 Townsend St, San Francisco, CA 94107, USA
+* **Téléphone (numéro US) :** +1 (888) 993-5273
+* **Site web :** [cloudflare.com](https://www.cloudflare.com)
+
+## 4. Propriété intellectuelle
+Les vidéos présentées sur ce site restent la propriété de leurs créateurs respectifs. Elles sont affichées avec leur accord, dans le seul but de présenter le travail de montage et de motion design réalisé par Arsuup.
+
+## 5. Cookies et données personnelles
+Aucune donnée personnelle n'est collectée. Le détail (cookie technique, contenus tiers, vos droits) est dans la [politique de confidentialité](/policies/rgpd).

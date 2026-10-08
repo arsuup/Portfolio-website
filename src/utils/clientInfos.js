@@ -1,57 +1,36 @@
 import { ref } from "vue"
 import { API_URL } from "@/utils/constants"
 
-const clientNameCache = new Map()
-const clientLinkCache = new Map()
+const cache = new Map()
 
-function getClientName(clientId) {
-  if (clientNameCache.has(clientId)) {
-    return clientNameCache.get(clientId)
-  }
-
-  const nameRef = ref(null)
-  clientNameCache.set(clientId, nameRef)
-
-  fetch(`${API_URL}/clients/name?client_id=${clientId}`)
-    .then((res) => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      return res.json()
-    })
-    .then((result) => {
-      nameRef.value = result.username
-    })
-    .catch((err) => {
-      console.error("Erreur lors du chargement du nom du client :", err)
-    })
-
-  return nameRef
+function fetchJson(url) {
+  return fetch(url).then((res) => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return res.json()
+  })
 }
 
-function getClientLink(clientId) {
-  if (clientLinkCache.has(clientId)) {
-    return clientLinkCache.get(clientId)
+export function useClientInfo(clientId, preset = {}) {
+  if (cache.has(clientId)) return cache.get(clientId)
+
+  const info = {
+    clientName: ref(preset.name ?? null),
+    clientLink: ref(preset.link ?? null),
+    clientAvatar: `${API_URL}/clients/pfp?id=${encodeURIComponent(clientId)}`,
+    status: ref(preset.name ? "ready" : "loading"),
   }
+  cache.set(clientId, info)
 
-  const linkRef = ref(null)
-  clientLinkCache.set(clientId, linkRef)
+  if (!clientId || preset.name) return info
 
-  fetch(`${API_URL}/clients/link?client_id=${clientId}`)
-    .then((res) => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      return res.json()
-    })
-    .then((result) => {
-      linkRef.value = result.redirect
-    })
-    .catch((err) => {
-      console.error("Erreur lors du chargement du lien du client :", err)
-    })
+  const id = encodeURIComponent(clientId)
+  Promise.allSettled([
+    fetchJson(`${API_URL}/clients/name?id=${id}`).then((r) => { info.clientName.value = r.username }),
+    fetchJson(`${API_URL}/clients/link?id=${id}`).then((r) => { info.clientLink.value = r.redirect }),
+  ]).then(([name]) => {
+    info.status.value = name.status === "fulfilled" && info.clientName.value ? "ready" : "error"
+    if (name.status === "rejected") console.warn("Nom du client indisponible :", clientId, name.reason)
+  })
 
-  return linkRef
-}
-
-export function useClientInfo(clientId) {
-  const clientName = getClientName(clientId)
-  const clientLink = getClientLink(clientId)
-  return { clientName, clientLink }
+  return info
 }
